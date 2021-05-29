@@ -21,12 +21,12 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 DARK_WHITE = (140, 140, 140)
 GREY = (60, 60, 60)
-LIGHT_GREY = (150, 150, 150)
+LIGHT_GREY = (200, 200, 200)
 RED = (255, 0, 0)
 
 # Settings koef
 settings = {
-    'easy': 4,
+    'easy': 6,
     'medium': 3,
     'hard': 2
 }
@@ -34,7 +34,7 @@ settings = {
 
 def draw_grid(surface, selected):  # Draws all grids
     if selected is not None:
-        pos = index_to_pos(selected)
+        pos = index_to_pos(selected[2])
         pygame.draw.rect(surface, LIGHT_GREY, [pos[0], pos[1], grid_size - slim, grid_size - slim], fill)
     for i in range(9):
         group_pos = [i % 3 * (3 * grid_size), math.floor(i / 3) * (grid_size * 3)]
@@ -48,13 +48,13 @@ def draw_num(surface, num_array):
     for group in range(len(num_array)):
         group_pos = [group % 3 * (3 * grid_size), math.floor(group / 3) * (grid_size * 3)]
         for n in range(len(num_array[group])):
-            n_pos = [group_pos[0] + (n % 3 * grid_size), group_pos[1] + math.floor(n / 3) * grid_size]
-
-            font = pygame.font.SysFont('sans-serif', 60)
-            text = font.render(str(num_array[group][n]), False, BLACK)
-            textDiv = text.get_rect()
-            textDiv.center = (n_pos[0] + grid_size / 2, n_pos[1] + grid_size / 2)
-            surface.blit(text, textDiv)
+            if num_array[group][n] != 0:
+                n_pos = [group_pos[0] + (n % 3 * grid_size), group_pos[1] + math.floor(n / 3) * grid_size]
+                font = pygame.font.SysFont('sans-serif', 60)
+                text = font.render(str(num_array[group][n]), False, BLACK)
+                textDiv = text.get_rect()
+                textDiv.center = (n_pos[0] + grid_size / 2, n_pos[1] + grid_size / 2)
+                surface.blit(text, textDiv)
 
 
 def get_index(pos):  # returns index from relative mouse pos
@@ -93,12 +93,21 @@ def main():
 
     selected = None
     nums = []
+    setting = settings['easy']
 
     for i in range(9):
         sub_arr = []
         for j in range(9):
-            sub_arr.append(j)
+            sub_arr.append(0)
         nums.append(sub_arr)
+
+    for group in nums:
+        random_nums_amount = random.randint(math.floor(setting) / 2, setting)
+        for i in range(random_nums_amount):
+            index = nums.index(group)
+            random_index = random.randint(0, 8)
+            if nums[index][random_index] == 0:
+                nums[index][random_index] = random.randint(1, 9)
 
     running = True
 
@@ -114,11 +123,13 @@ def main():
         for e in events:
             if e.type == pygame.MOUSEBUTTONUP:
                 index_array = get_index(pygame.mouse.get_pos())
-                selected = index_array[2]
-
-            if e.type == pygame.QUIT:
+                selected = index_array
+            elif e.type == pygame.QUIT:
                 pygame.quit()
                 running = False
+            elif e.type == pygame.KEYDOWN:
+                if isinstance(e.key, (int, float)) and nums[selected[0]][selected[1]] == 0:
+                    nums[selected[0]][selected[1]] = e.key
 
 
 main()
